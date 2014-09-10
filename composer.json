@@ -1,17 +1,21 @@
 {
-    "name": "tiesa/ldap",
-    "description": "LDAP made easy & practical to use in PHP",
+    "name": "81square/tiesa-ldap",
+    "description": "LDAP made easy & practical to use in PHP (fork of tiesa/ldap)",
     "keywords": ["LDAP"],
-    "homepage": "https://github.com/ccottet/ldap",
+    "homepage": "https://github.com/81square/ldap",
     "license": "MIT",
     "authors": [
         {
             "name": "Cyril Cottet",
             "email": "cyril.cottet@gmail.com"
+        },
+        {
+            "name": "Maarten van Zanten",
+            "email": "info@81square.nl"
         }
     ],
     "require": {
-        "php": ">=5.3.3",
+        "php": ">=5.4.22",
         "ext-ldap": "*"
     },
     "require-dev": {
