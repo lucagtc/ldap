@@ -13,6 +13,7 @@ namespace Toyota\Component\Ldap\Core;
 
 use Toyota\Component\Ldap\API\DriverInterface;
 use Toyota\Component\Ldap\API\SearchInterface;
+use Toyota\Component\Ldap\API\ConnectionInterface;
 use Toyota\Component\Ldap\Exception\NodeNotFoundException;
 use Toyota\Component\Ldap\Exception\NoResultException;
 use Toyota\Component\Ldap\Exception\NotBoundException;
@@ -185,7 +186,17 @@ class Manager
         if (! array_key_exists('options', $params)) {
             $params['options'] = array();
         }
-
+	// Set some default connection options
+	if (!isset($params['options'][ConnectionInterface::OPT_PROTOCOL_VERSION])) {
+	    // We need at least v3
+	    $params['options'][ConnectionInterface::OPT_PROTOCOL_VERSION] = 3;
+	}
+	if (!isset($params['options'][ConnectionInterface::OPT_REFERRALS])) {
+	    // Default no referrals
+	    $params['options'][ConnectionInterface::OPT_REFERRALS] = 0;
+	}
+	
+	
         $params['bind_anonymous'] = false;
         if ((! array_key_exists('bind_dn', $params)) || (strlen(trim($params['bind_dn'])) == 0)) {
             $params['bind_anonymous'] = true;
@@ -239,7 +250,7 @@ class Manager
     }
 
     /**
-     * Execites a search on the ldap
+     * Executes a search on the ldap
      *
      * @param string  $baseDn     Base distinguished name to search in (Default = configured dn)
      * @param string  $filter     Ldap filter according to RFC4515 (Default = null)
