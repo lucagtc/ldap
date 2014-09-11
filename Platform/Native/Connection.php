@@ -56,14 +56,12 @@ class Connection implements ConnectionInterface
      */
     public function setOption($option, $value)
     {
-        if (! (@ldap_set_option($this->connection, $option, $value))) {
+        if (!(@ldap_set_option($this->connection, $option, $value))) {
             $code = @ldap_errno($this->connection);
             throw new OptionException(
-                sprintf(
-                    'Could not change option %s value: Ldap Error Code=%s - %s',
-                    $code,
-                    ldap_err2str($code)
-                )
+            sprintf(
+                    'Could not change option %s value: Ldap Error Code=%s - %s', $code, ldap_err2str($code)
+            )
             );
         }
     }
@@ -80,14 +78,12 @@ class Connection implements ConnectionInterface
     public function getOption($option)
     {
         $value = null;
-        if (! (@ldap_get_option($this->connection, $option, $value))) {
+        if (!(@ldap_get_option($this->connection, $option, $value))) {
             $code = @ldap_errno($this->connection);
             throw new OptionException(
-                sprintf(
-                    'Could not retrieve option %s value: Ldap Error Code=%s - %s',
-                    $code,
-                    ldap_err2str($code)
-                )
+            sprintf(
+                    'Could not retrieve option %s value: Ldap Error Code=%s - %s', $code, ldap_err2str($code)
+            )
             );
         }
         return $value;
@@ -109,21 +105,18 @@ class Connection implements ConnectionInterface
         if ((null === $rdn) || (null === $password)) {
             if ((null !== $rdn) || (null !== $password)) {
                 throw new BindException(
-                    'For an anonymous binding, both rdn & passwords have to be null'
+                'For an anonymous binding, both rdn & passwords have to be null'
                 );
             }
             $isAnonymous = true;
         }
 
-        if (! (@ldap_bind($this->connection, $rdn, $password))) {
+        if (!(@ldap_bind($this->connection, $rdn, $password))) {
             $code = @ldap_errno($this->connection);
             throw new BindException(
-                sprintf(
-                    'Could not bind %s user: Ldap Error Code=%s - %s',
-                    $isAnonymous?'anonymous':'privileged',
-                    $code,
-                    ldap_err2str($code)
-                )
+            sprintf(
+                    'Could not bind %s user: Ldap Error Code=%s - %s', $isAnonymous ? 'anonymous' : 'privileged', $code, ldap_err2str($code)
+            )
             );
         }
     }
@@ -137,14 +130,12 @@ class Connection implements ConnectionInterface
      */
     public function close()
     {
-        if (! (@ldap_unbind($this->connection))) {
+        if (!(@ldap_unbind($this->connection))) {
             $code = @ldap_errno($this->connection);
             throw new ConnectionException(
-                sprintf(
-                    'Could not close the connection: Ldap Error Code=%s - %s',
-                    $code,
-                    ldap_err2str($code)
-                )
+            sprintf(
+                    'Could not close the connection: Ldap Error Code=%s - %s', $code, ldap_err2str($code)
+            )
             );
         }
 
@@ -165,15 +156,12 @@ class Connection implements ConnectionInterface
     {
         $data = $this->normalizeData($data);
 
-        if (! (@ldap_add($this->connection, $dn, $data))) {
+        if (!(@ldap_add($this->connection, $dn, $data))) {
             $code = @ldap_errno($this->connection);
             throw new PersistenceException(
-                sprintf(
-                    'Could not add entry %s: Ldap Error Code=%s - %s',
-                    $dn,
-                    $code,
-                    ldap_err2str($code)
-                )
+            sprintf(
+                    'Could not add entry %s: Ldap Error Code=%s - %s', $dn, $code, ldap_err2str($code)
+            )
             );
         }
     }
@@ -189,15 +177,12 @@ class Connection implements ConnectionInterface
      */
     public function deleteEntry($dn)
     {
-        if (! (@ldap_delete($this->connection, $dn))) {
+        if (!(@ldap_delete($this->connection, $dn))) {
             $code = @ldap_errno($this->connection);
             throw new PersistenceException(
-                sprintf(
-                    'Could not delete entry %s: Ldap Error Code=%s - %s',
-                    $dn,
-                    $code,
-                    ldap_err2str($code)
-                )
+            sprintf(
+                    'Could not delete entry %s: Ldap Error Code=%s - %s', $dn, $code, ldap_err2str($code)
+            )
             );
         }
     }
@@ -229,15 +214,12 @@ class Connection implements ConnectionInterface
     {
         $data = $this->normalizeData($data);
 
-        if (! (@ldap_mod_add($this->connection, $dn, $data))) {
+        if (!(@ldap_mod_add($this->connection, $dn, $data))) {
             $code = @ldap_errno($this->connection);
             throw new PersistenceException(
-                sprintf(
-                    'Could not add attribute values for entry %s: Ldap Error Code=%s - %s',
-                    $dn,
-                    $code,
-                    ldap_err2str($code)
-                )
+            sprintf(
+                    'Could not add attribute values for entry %s: Ldap Error Code=%s - %s', $dn, $code, ldap_err2str($code)
+            )
             );
         }
     }
@@ -269,15 +251,12 @@ class Connection implements ConnectionInterface
     {
         $data = $this->normalizeData($data);
 
-        if (! (@ldap_mod_replace($this->connection, $dn, $data))) {
+        if (!(@ldap_mod_replace($this->connection, $dn, $data))) {
             $code = @ldap_errno($this->connection);
             throw new PersistenceException(
-                sprintf(
-                    'Could not replace attribute values for entry %s: Ldap Error Code=%s - %s',
-                    $dn,
-                    $code,
-                    ldap_err2str($code)
-                )
+            sprintf(
+                    'Could not replace attribute values for entry %s: Ldap Error Code=%s - %s', $dn, $code, ldap_err2str($code)
+            )
             );
         }
     }
@@ -309,15 +288,12 @@ class Connection implements ConnectionInterface
     {
         $data = $this->normalizeData($data);
 
-        if (! (@ldap_mod_del($this->connection, $dn, $data))) {
+        if (!(@ldap_mod_del($this->connection, $dn, $data))) {
             $code = @ldap_errno($this->connection);
             throw new PersistenceException(
-                sprintf(
-                    'Could not delete attribute values for entry %s: Ldap Error Code=%s - %s',
-                    $dn,
-                    $code,
-                    ldap_err2str($code)
-                )
+            sprintf(
+                    'Could not delete attribute values for entry %s: Ldap Error Code=%s - %s', $dn, $code, ldap_err2str($code)
+            )
             );
         }
     }
@@ -329,7 +305,8 @@ class Connection implements ConnectionInterface
      * @param string  $baseDn     Base distinguished name to look below
      * @param string  $filter     Filter for the search
      * @param array   $attributes Names of attributes to retrieve (Default: All)
-     *
+     * @param int     $pageSize   Page size (Default: 0, no paging)
+     * 
      * @return SearchInterface Search result set
      *
      * @throws NoResultException if no result can be retrieved
@@ -337,14 +314,27 @@ class Connection implements ConnectionInterface
      * @throws MalformedFilterException if filter is wrongly formatted
      * @throws SearchException if search failed otherwise
      */
-    public function search($scope, $baseDn, $filter, $attributes = null)
+    public function search($scope, $baseDn, $filter, $attributes = null, $pageSize = 0)
     {
+        // For now we only support paging on search
+        if ($pageSize > 0 && $scope === SearchInterface::SCOPE_ALL) {
+            // Do paged search
+            return $this->searchLdapPaged($pageSize, $baseDn, $filter, $attributes);
+        }
+
+        // Ok regular 'search' with no paging
+        // Reset paged result setting (it may have been set in a previous operation)
+        if (!@ldap_control_paged_result($this->connection, 0)) {
+            throw new SearchException("Unable to reset paged control");
+        }
+
         switch ($scope) {
             case SearchInterface::SCOPE_BASE:
                 $function = 'ldap_read';
                 break;
             case SearchInterface::SCOPE_ONE:
                 $function = 'ldap_list';
+                $pageSize = 0;
                 break;
             case SearchInterface::SCOPE_ALL:
                 $function = 'ldap_search';
@@ -358,37 +348,80 @@ class Connection implements ConnectionInterface
             $params[] = $attributes;
         }
 
-        if (false === ($search = @call_user_func_array($function, $params))) {
-            $code = @ldap_errno($this->connection);
-            switch ($code) {
-
-            case 32:
-                throw new NoResultException('No result retrieved for the given search');
-                break;
-            case 4:
-                throw new SizeLimitException(
-                    'Size limit reached while performing the expected search'
-                );
-                break;
-            case 87:
-                throw new MalformedFilterException(
-                    sprintf('Search for filter %s fails for a malformed filter', $filter)
-                );
-                break;
-            default:
-                throw new SearchException(
-                    sprintf(
-                        'Search on %s with filter %s failed. Ldap Error Code:%s - %s',
-                        $baseDn,
-                        $filter,
-                        $code,
-                        ldap_err2str($code)
-                    )
-                );
-            }
+        $search = @call_user_func_array($function, $params);
+        if (false === $search) {
+            // Something went wrong
+            throw $this->createLdapSearchException(@ldap_errno($this->connection), $baseDn, $filter);
         }
 
         return new Search($this->connection, $search);
+    }
+
+    /**
+     * Performs multiple ldap_search calls to retrieve multiple pages of entries
+     * 
+     * @param int     $pageSize   Page size
+     * @param string  $baseDn     Base distinguished name to look below
+     * @param string  $filter     Filter for the search
+     * @param array   $attributes Names of attributes to retrieve (Default: All)
+     * 
+     * @return SearchInterface
+     */
+    protected function searchLdapPaged($pageSize, $baseDn, $filter, $attributes = null)
+    {
+        $cookie = '';
+        $allResults = new SearchPreloaded();
+
+        do {
+            if (!@ldap_control_paged_result($this->connection, $pageSize, true, $cookie)) {
+                throw new SearchException("Unable to set paged control");
+            }
+
+            $result = @ldap_search($this->connection, $baseDn, $filter, $attributes);
+            if (false === $result) {
+                // Something went wrong in search
+                throw $this->createLdapSearchException(@ldap_errno($this->connection), $baseDn, $filter);
+            }
+
+            // Ok add all entries
+            $allResults->addEntries(@ldap_get_entries($this->connection, $result));
+
+            // Ok go to next page
+            @ldap_control_paged_result_response($this->connection, $result, $cookie);
+        } while ($cookie !== null && $cookie != '');
+
+        return $allResults;
+    }
+
+    /**
+     * Create an exception for ldap error code
+     * 
+     * @param int     $code     LDAP error code
+     * @param string  $baseDn   Base distinguished name to look below
+     * @param string  $filter   Filter for the search
+     * @return \Toyota\Component\Ldap\Exception\SizeLimitException|\Toyota\Component\Ldap\Exception\NoResultException|\Toyota\Component\Ldap\Exception\MalformedFilterException|\Toyota\Component\Ldap\Exception\SearchException
+     */
+    protected function createLdapSearchException($code, $baseDn, $filter)
+    {
+        switch ($code) {
+
+            case 32:
+                return new NoResultException('No result retrieved for the given search');
+            case 4:
+                return new SizeLimitException(
+                        'Size limit reached while performing the expected search'
+                );
+            case 87:
+                return new MalformedFilterException(
+                        sprintf('Search for filter %s fails for a malformed filter', $filter)
+                );
+            default:
+                return new SearchException(
+                        sprintf(
+                                'Search on %s with filter %s failed. Ldap Error Code:%s - %s', $baseDn, $filter, $code, ldap_err2str($code)
+                        )
+                );
+        }
     }
 
     /**
@@ -410,4 +443,5 @@ class Connection implements ConnectionInterface
         }
         return $data;
     }
+
 }

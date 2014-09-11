@@ -46,6 +46,7 @@ class Manager
      *         security      => one of SSL or TLS
      *         bind_dn       => cn=admin,dc=example,dc=com (bind will be anonymous if not given)
      *         bind_password => secret (can be plain or a hash)
+     *         page_size     => page size (default 1000, set to 0 for no paging)
      *         options       => array of options according to driver specifications
      *
      * @param array           $params Connection parameters
@@ -158,11 +159,9 @@ class Manager
                     $params['withTLS'] = true;
                     break;
                 default:
-                    throw new \InvalidArgumentException(
-                    sprintf(
+                    throw new \InvalidArgumentException(sprintf(
                             'Security mode %s not supported - only SSL or TLS are supported', $params['security']
-                    )
-                    );
+                    ));
             }
         } elseif ($enforceSSL) {
             $params['withSSL'] = true;
@@ -189,7 +188,10 @@ class Manager
             $params['options'][ConnectionInterface::OPT_REFERRALS] = 0;
         }
 
-
+        if (!array_key_exists('page_size', $params)) {
+            $params['page_size'] = 1000;
+        }
+        
         $params['bind_anonymous'] = false;
         if ((!array_key_exists('bind_dn', $params)) || (strlen(trim($params['bind_dn'])) == 0)) {
             $params['bind_anonymous'] = true;
@@ -249,9 +251,7 @@ class Manager
      *
      * @return SearchResult
      */
-    public function search(
-    $baseDn = null, $filter = null, $inDepth = true, $attributes = null
-    )
+    public function search($baseDn = null, $filter = null, $inDepth = true, $attributes = null)
     {
         $this->validateBinding();
 
@@ -261,9 +261,10 @@ class Manager
         $filter = (null === $filter) ? '(objectclass=*)' : $filter;
         $attributes = (is_array($attributes)) ? $attributes : null;
         $scope = $inDepth ? SearchInterface::SCOPE_ALL : SearchInterface::SCOPE_ONE;
-
+        $pageSize = isset($this->configuration['page_size']) ? (int)($this->configuration['page_size']) : 0;
+        
         try {
-            $search = $this->connection->search($scope, $baseDn, $filter, $attributes);
+            $search = $this->connection->search($scope, $baseDn, $filter, $attributes, $pageSize);
         } catch (NoResultException $e) {
             return $result;
         }
