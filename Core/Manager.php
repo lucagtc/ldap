@@ -74,7 +74,10 @@ class Manager
     {
         $this->isBound = false;
         $this->connection = $this->driver->connect(
-                $this->configuration['hostname'], $this->configuration['port'], $this->configuration['withSSL'], $this->configuration['withTLS']
+                $this->configuration['hostname'], 
+                $this->configuration['port'], 
+                $this->configuration['withSSL'], 
+                $this->configuration['withTLS']
         );
 
         foreach ($this->configuration['options'] as $key => $value) {
@@ -108,7 +111,8 @@ class Manager
         }
 
         $this->connection->bind(
-                $this->configuration['bind_dn'], $this->configuration['bind_password']
+                $this->configuration['bind_dn'], 
+                $this->configuration['bind_password']
         );
         $this->isBound = true;
     }
