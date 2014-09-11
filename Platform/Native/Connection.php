@@ -377,13 +377,13 @@ class Connection implements ConnectionInterface
                 throw new SearchException("Unable to set paged control pageSize: ".$pageSize);
             }
 
-            $result = ldap_search($this->connection, $baseDn, $filter, $attributes);
-            if (false === $result) {
+            $search = ldap_search($this->connection, $baseDn, $filter, is_array($attributes) ? $attributes : array());
+            if (!$search) {
                 // Something went wrong in search
                 throw $this->createLdapSearchException(ldap_errno($this->connection), $baseDn, $filter, $pageSize);
             }
 
-            $entries = ldap_get_entries($this->connection, $result);
+            $entries = ldap_get_entries($this->connection, $search);
             if(!$entries) {
                 // No entries?
                 throw $this->createLdapSearchException(ldap_errno($this->connection), $baseDn, $filter, $pageSize);
@@ -393,7 +393,7 @@ class Connection implements ConnectionInterface
             $allResults->addEntries($entries);
 
             // Ok go to next page
-            ldap_control_paged_result_response($this->connection, $result, $cookie);
+            ldap_control_paged_result_response($this->connection, $search, $cookie);
         } while ($cookie !== null && $cookie != '');
 
         return $allResults;
