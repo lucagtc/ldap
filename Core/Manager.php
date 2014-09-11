@@ -30,11 +30,8 @@ class Manager
 {
 
     protected $connection = null;
-
     protected $isBound = false;
-
     protected $configuration = array();
-
     protected $driver = null;
 
     /**
@@ -76,10 +73,7 @@ class Manager
     {
         $this->isBound = false;
         $this->connection = $this->driver->connect(
-            $this->configuration['hostname'],
-            $this->configuration['port'],
-            $this->configuration['withSSL'],
-            $this->configuration['withTLS']
+                $this->configuration['hostname'], $this->configuration['port'], $this->configuration['withSSL'], $this->configuration['withTLS']
         );
 
         foreach ($this->configuration['options'] as $key => $value) {
@@ -100,7 +94,7 @@ class Manager
     public function bind($name = null, $password = null)
     {
         if (strlen(trim($name)) > 0) {
-            $password = (null === $password)?'':$password;
+            $password = (null === $password) ? '' : $password;
             $this->connection->bind($name, $password);
             $this->isBound = true;
             return;
@@ -113,8 +107,7 @@ class Manager
         }
 
         $this->connection->bind(
-            $this->configuration['bind_dn'],
-            $this->configuration['bind_password']
+                $this->configuration['bind_dn'], $this->configuration['bind_password']
         );
         $this->isBound = true;
     }
@@ -130,16 +123,17 @@ class Manager
      */
     protected function configure(array $params)
     {
+
         $required = array('hostname', 'base_dn');
         $missing = array();
         foreach ($required as $key) {
-            if (! array_key_exists($key, $params)) {
+            if (!array_key_exists($key, $params)) {
                 $missing[] = $key;
             }
         }
         if (count($missing) > 0) {
             throw new \InvalidArgumentException(
-                'Required parameters missing: ' . implode(', ', $missing)
+            'Required parameters missing: ' . implode(', ', $missing)
             );
         }
 
@@ -150,32 +144,31 @@ class Manager
             if ($prefix === 'ldaps') {
                 $enforceSSL = true;
             }
-            $params['hostname'] = substr($params['hostname'], $idx+3);
+            $params['hostname'] = substr($params['hostname'], $idx + 3);
         }
 
         $params['withSSL'] = false;
         $params['withTLS'] = false;
         if (array_key_exists('security', $params)) {
-            switch($params['security']) {
-            case 'SSL':
-                $params['withSSL'] = true;
-                break;
-            case 'TLS':
-                $params['withTLS'] = true;
-                break;
-            default:
-                throw new \InvalidArgumentException(
+            switch ($params['security']) {
+                case 'SSL':
+                    $params['withSSL'] = true;
+                    break;
+                case 'TLS':
+                    $params['withTLS'] = true;
+                    break;
+                default:
+                    throw new \InvalidArgumentException(
                     sprintf(
-                        'Security mode %s not supported - only SSL or TLS are supported',
-                        $params['security']
+                            'Security mode %s not supported - only SSL or TLS are supported', $params['security']
                     )
-                );
+                    );
             }
         } elseif ($enforceSSL) {
             $params['withSSL'] = true;
         }
 
-        if (! array_key_exists('port', $params)) {
+        if (!array_key_exists('port', $params)) {
             if ($params['withSSL']) {
                 $params['port'] = 636;
             } else {
@@ -183,28 +176,28 @@ class Manager
             }
         }
 
-        if (! array_key_exists('options', $params)) {
+        if (!array_key_exists('options', $params)) {
             $params['options'] = array();
         }
-	// Set some default connection options
-	if (!isset($params['options'][ConnectionInterface::OPT_PROTOCOL_VERSION])) {
-	    // We need at least v3
-	    $params['options'][ConnectionInterface::OPT_PROTOCOL_VERSION] = 3;
-	}
-	if (!isset($params['options'][ConnectionInterface::OPT_REFERRALS])) {
-	    // Default no referrals
-	    $params['options'][ConnectionInterface::OPT_REFERRALS] = 0;
-	}
-	
-	
-        $params['bind_anonymous'] = false;
-        if ((! array_key_exists('bind_dn', $params)) || (strlen(trim($params['bind_dn'])) == 0)) {
-            $params['bind_anonymous'] = true;
-            $params['bind_dn']        = '';
-            $params['bind_password']  = '';
+        // Set some default connection options
+        if (!isset($params['options'][ConnectionInterface::OPT_PROTOCOL_VERSION])) {
+            // We need at least v3
+            $params['options'][ConnectionInterface::OPT_PROTOCOL_VERSION] = 3;
         }
-        if (! array_key_exists('bind_password', $params)) {
-            $params['bind_password']  = '';
+        if (!isset($params['options'][ConnectionInterface::OPT_REFERRALS])) {
+            // Default no referrals
+            $params['options'][ConnectionInterface::OPT_REFERRALS] = 0;
+        }
+
+
+        $params['bind_anonymous'] = false;
+        if ((!array_key_exists('bind_dn', $params)) || (strlen(trim($params['bind_dn'])) == 0)) {
+            $params['bind_anonymous'] = true;
+            $params['bind_dn'] = '';
+            $params['bind_password'] = '';
+        }
+        if (!array_key_exists('bind_password', $params)) {
+            $params['bind_password'] = '';
         }
 
         $this->configuration = $params;
@@ -225,15 +218,12 @@ class Manager
     {
         $this->validateBinding();
 
-        $attributes = (is_array($attributes))?$attributes:null;
-        $filter = (null === $filter)?'(objectclass=*)':$filter;
+        $attributes = (is_array($attributes)) ? $attributes : null;
+        $filter = (null === $filter) ? '(objectclass=*)' : $filter;
 
         try {
             $search = $this->connection->search(
-                SearchInterface::SCOPE_BASE,
-                $dn,
-                $filter,
-                $attributes
+                    SearchInterface::SCOPE_BASE, $dn, $filter, $attributes
             );
         } catch (NoResultException $e) {
             throw new NodeNotFoundException(sprintf('Node %s not found', $dn));
@@ -260,19 +250,17 @@ class Manager
      * @return SearchResult
      */
     public function search(
-        $baseDn = null,
-        $filter = null,
-        $inDepth = true,
-        $attributes = null
-    ) {
+    $baseDn = null, $filter = null, $inDepth = true, $attributes = null
+    )
+    {
         $this->validateBinding();
 
         $result = new SearchResult();
 
-        $baseDn = (null === $baseDn)?$this->configuration['base_dn']:$baseDn;
-        $filter = (null === $filter)?'(objectclass=*)':$filter;
-        $attributes = (is_array($attributes))?$attributes:null;
-        $scope = $inDepth?SearchInterface::SCOPE_ALL:SearchInterface::SCOPE_ONE;
+        $baseDn = (null === $baseDn) ? $this->configuration['base_dn'] : $baseDn;
+        $filter = (null === $filter) ? '(objectclass=*)' : $filter;
+        $attributes = (is_array($attributes)) ? $attributes : null;
+        $scope = $inDepth ? SearchInterface::SCOPE_ALL : SearchInterface::SCOPE_ONE;
 
         try {
             $search = $this->connection->search($scope, $baseDn, $filter, $attributes);
@@ -293,7 +281,7 @@ class Manager
      */
     protected function validateBinding()
     {
-        if (! $this->isBound) {
+        if (!$this->isBound) {
             throw new NotBoundException('You have to bind to the Ldap first');
         }
     }
@@ -314,11 +302,11 @@ class Manager
             throw new PersistenceException('Cannot save: dn missing for the entry');
         }
 
-        if (! $node->isHydrated()) {
+        if (!$node->isHydrated()) {
             try {
                 $origin = $this->getNode($node->getDn());
                 $node->rebaseDiff($origin);
-            } catch(NodeNotFoundException $e) {
+            } catch (NodeNotFoundException $e) {
                 $this->connection->addEntry($node->getDn(), $node->getRawAttributes());
                 $node->snapshot();
                 return true;
@@ -370,14 +358,14 @@ class Manager
      */
     public function delete(Node $node, $isRecursive = false)
     {
-        if (! $node->isHydrated()) {
+        if (!$node->isHydrated()) {
             $node = $this->getNode($node->getDn());
         }
         $children = $this->getChildrenNodes($node);
         if (count($children) > 0) {
-            if (! $isRecursive) {
+            if (!$isRecursive) {
                 throw new DeleteException(
-                    sprintf('%s cannot be deleted - it has some children left', $node->getDn())
+                sprintf('%s cannot be deleted - it has some children left', $node->getDn())
                 );
             }
             foreach ($children as $child) {
@@ -385,6 +373,6 @@ class Manager
             }
         }
         $this->connection->deleteEntry($node->getDn());
-
     }
+
 }
