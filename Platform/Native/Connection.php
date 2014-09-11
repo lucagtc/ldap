@@ -373,21 +373,27 @@ class Connection implements ConnectionInterface
         $allResults = new SearchPreloaded();
 
         do {
-            if (!@ldap_control_paged_result($this->connection, $pageSize, true, $cookie)) {
-                throw new SearchException("Unable to set paged control");
+            if (!ldap_control_paged_result($this->connection, $pageSize, true, $cookie)) {
+                throw new SearchException("Unable to set paged control pageSize: ".$pageSize);
             }
 
-            $result = @ldap_search($this->connection, $baseDn, $filter, $attributes);
+            $result = ldap_search($this->connection, $baseDn, $filter, $attributes);
             if (false === $result) {
                 // Something went wrong in search
-                throw $this->createLdapSearchException(@ldap_errno($this->connection), $baseDn, $filter);
+                throw $this->createLdapSearchException(ldap_errno($this->connection), $baseDn, $filter, $pageSize);
             }
 
+            $entries = ldap_get_entries($this->connection, $result);
+            if(!$entries) {
+                // No entries?
+                throw $this->createLdapSearchException(ldap_errno($this->connection), $baseDn, $filter, $pageSize);
+            }
+            
             // Ok add all entries
-            $allResults->addEntries(@ldap_get_entries($this->connection, $result));
+            $allResults->addEntries($entries);
 
             // Ok go to next page
-            @ldap_control_paged_result_response($this->connection, $result, $cookie);
+            ldap_control_paged_result_response($this->connection, $result, $cookie);
         } while ($cookie !== null && $cookie != '');
 
         return $allResults;
@@ -399,9 +405,10 @@ class Connection implements ConnectionInterface
      * @param int     $code     LDAP error code
      * @param string  $baseDn   Base distinguished name to look below
      * @param string  $filter   Filter for the search
+     * @param int     $pageSize PageSize
      * @return \Toyota\Component\Ldap\Exception\SizeLimitException|\Toyota\Component\Ldap\Exception\NoResultException|\Toyota\Component\Ldap\Exception\MalformedFilterException|\Toyota\Component\Ldap\Exception\SearchException
      */
-    protected function createLdapSearchException($code, $baseDn, $filter)
+    protected function createLdapSearchException($code, $baseDn, $filter, $pageSize = 0)
     {
         switch ($code) {
 
@@ -418,7 +425,12 @@ class Connection implements ConnectionInterface
             default:
                 return new SearchException(
                         sprintf(
-                                'Search on %s with filter %s failed. Ldap Error Code:%s - %s', $baseDn, $filter, $code, ldap_err2str($code)
+                                'Search on %s with filter %s failed. PageSize: %s, Ldap Error Code:%s - %s', 
+                                $baseDn, 
+                                $filter, 
+                                $pageSize,
+                                $code, 
+                                ldap_err2str($code)
                         )
                 );
         }
