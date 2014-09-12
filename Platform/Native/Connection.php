@@ -58,10 +58,10 @@ class Connection implements ConnectionInterface
     {
         if (!(@ldap_set_option($this->connection, $option, $value))) {
             $code = @ldap_errno($this->connection);
-            throw new OptionException(
-            sprintf(
-                    'Could not change option %s value: Ldap Error Code=%s - %s', $code, ldap_err2str($code)
-            )
+                throw new OptionException(
+                sprintf(
+                        'Could not change option %s value: Ldap Error Code=%s - %s', $option, $code, ldap_err2str($code)
+                ), $code
             );
         }
     }
@@ -80,10 +80,10 @@ class Connection implements ConnectionInterface
         $value = null;
         if (!(@ldap_get_option($this->connection, $option, $value))) {
             $code = @ldap_errno($this->connection);
-            throw new OptionException(
-            sprintf(
-                    'Could not retrieve option %s value: Ldap Error Code=%s - %s', $code, ldap_err2str($code)
-            )
+                throw new OptionException(
+                sprintf(
+                        'Could not retrieve option %s value: Ldap Error Code=%s - %s', $option, $code, ldap_err2str($code)
+                ), $code
             );
         }
         return $value;
@@ -113,11 +113,14 @@ class Connection implements ConnectionInterface
 
         if (!(@ldap_bind($this->connection, $rdn, $password))) {
             $code = @ldap_errno($this->connection);
-            throw new BindException(
-            sprintf(
-                    'Could not bind %s user: Ldap Error Code=%s - %s', $isAnonymous ? 'anonymous' : 'privileged', $code, ldap_err2str($code)
-            )
-            );
+            $err = sprintf(
+                    'Could not bind %s user: Ldap Error Code=%s - %s', 
+                    $isAnonymous ? 'anonymous' : 'privileged', 
+                    $code, 
+                    ldap_err2str($code)
+                );
+
+            throw new BindException($err, $code);
         }
     }
 
@@ -133,9 +136,9 @@ class Connection implements ConnectionInterface
         if (!(@ldap_unbind($this->connection))) {
             $code = @ldap_errno($this->connection);
             throw new ConnectionException(
-            sprintf(
-                    'Could not close the connection: Ldap Error Code=%s - %s', $code, ldap_err2str($code)
-            )
+                sprintf(
+                        'Could not close the connection: Ldap Error Code=%s - %s', $code, ldap_err2str($code)
+                ), $code
             );
         }
 
@@ -159,9 +162,9 @@ class Connection implements ConnectionInterface
         if (!(@ldap_add($this->connection, $dn, $data))) {
             $code = @ldap_errno($this->connection);
             throw new PersistenceException(
-            sprintf(
-                    'Could not add entry %s: Ldap Error Code=%s - %s', $dn, $code, ldap_err2str($code)
-            )
+                sprintf(
+                        'Could not add entry %s: Ldap Error Code=%s - %s', $dn, $code, ldap_err2str($code)
+                ), $code
             );
         }
     }
@@ -180,9 +183,9 @@ class Connection implements ConnectionInterface
         if (!(@ldap_delete($this->connection, $dn))) {
             $code = @ldap_errno($this->connection);
             throw new PersistenceException(
-            sprintf(
-                    'Could not delete entry %s: Ldap Error Code=%s - %s', $dn, $code, ldap_err2str($code)
-            )
+                sprintf(
+                        'Could not delete entry %s: Ldap Error Code=%s - %s', $dn, $code, ldap_err2str($code)
+                ), $code
             );
         }
     }
@@ -217,9 +220,9 @@ class Connection implements ConnectionInterface
         if (!(@ldap_mod_add($this->connection, $dn, $data))) {
             $code = @ldap_errno($this->connection);
             throw new PersistenceException(
-            sprintf(
-                    'Could not add attribute values for entry %s: Ldap Error Code=%s - %s', $dn, $code, ldap_err2str($code)
-            )
+                sprintf(
+                        'Could not add attribute values for entry %s: Ldap Error Code=%s - %s', $dn, $code, ldap_err2str($code)
+                ), $code
             );
         }
     }
@@ -254,9 +257,9 @@ class Connection implements ConnectionInterface
         if (!(@ldap_mod_replace($this->connection, $dn, $data))) {
             $code = @ldap_errno($this->connection);
             throw new PersistenceException(
-            sprintf(
-                    'Could not replace attribute values for entry %s: Ldap Error Code=%s - %s', $dn, $code, ldap_err2str($code)
-            )
+                sprintf(
+                        'Could not replace attribute values for entry %s: Ldap Error Code=%s - %s', $dn, $code, ldap_err2str($code)
+                ), $code
             );
         }
     }
@@ -291,9 +294,9 @@ class Connection implements ConnectionInterface
         if (!(@ldap_mod_del($this->connection, $dn, $data))) {
             $code = @ldap_errno($this->connection);
             throw new PersistenceException(
-            sprintf(
-                    'Could not delete attribute values for entry %s: Ldap Error Code=%s - %s', $dn, $code, ldap_err2str($code)
-            )
+                sprintf(
+                        'Could not delete attribute values for entry %s: Ldap Error Code=%s - %s', $dn, $code, ldap_err2str($code)
+                ), $code
             );
         }
     }
@@ -413,14 +416,14 @@ class Connection implements ConnectionInterface
         switch ($code) {
 
             case 32:
-                return new NoResultException('No result retrieved for the given search');
+                return new NoResultException('No result retrieved for the given search', $code);
             case 4:
                 return new SizeLimitException(
-                        'Size limit reached while performing the expected search'
+                        'Size limit reached while performing the expected search', $code
                 );
             case 87:
                 return new MalformedFilterException(
-                        sprintf('Search for filter %s fails for a malformed filter', $filter)
+                        sprintf('Search for filter %s fails for a malformed filter', $filter), $code
                 );
             default:
                 return new SearchException(
@@ -431,7 +434,7 @@ class Connection implements ConnectionInterface
                                 $pageSize,
                                 $code, 
                                 ldap_err2str($code)
-                        )
+                        ), $code
                 );
         }
     }
@@ -446,11 +449,9 @@ class Connection implements ConnectionInterface
     protected function normalizeData($data)
     {
         foreach ($data as $attribute => $info) {
-            if (is_array($info)) {
-                if (count($info) == 1) {
-                    $data[$attribute] = $info[0];
-                    continue;
-                }
+            if (is_array($info) && count($info) == 1) {
+                $data[$attribute] = $info[0];
+                continue;
             }
         }
         return $data;
