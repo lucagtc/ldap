@@ -21,12 +21,10 @@ use Toyota\Component\Ldap\Exception\RebaseException;
  */
 class Node
 {
+
     protected $dn;
-
     protected $attributes = array();
-
     public $tracker = null;
-
     protected $isHydrated = false;
 
     /**
@@ -38,7 +36,7 @@ class Node
      */
     public function __construct(DiffTracker $tracker = null)
     {
-        $this->tracker = (null === $tracker)?(new DiffTracker()):$tracker;
+        $this->tracker = (null === $tracker) ? (new DiffTracker()) : $tracker;
     }
 
     /**
@@ -85,7 +83,7 @@ class Node
      */
     public function setDn($dn, $force = false)
     {
-        if (($this->isHydrated) && (! $force)) {
+        if (($this->isHydrated) && (!$force)) {
             throw new \InvalidArgumentException('Dn cannot be updated manually');
         }
         $this->dn = $dn;
@@ -123,7 +121,7 @@ class Node
      */
     public function mergeAttribute(NodeAttribute $attribute)
     {
-        if (! $this->has($attribute->getName())) {
+        if (!$this->has($attribute->getName())) {
             $this->attributes[$attribute->getName()] = $attribute;
             $this->tracker->logAddition($attribute->getName());
             return;
@@ -143,7 +141,7 @@ class Node
      */
     public function removeAttribute($name)
     {
-        if (! $this->has($name)) {
+        if (!$this->has($name)) {
             return false;
         }
         unset($this->attributes[$name]);
@@ -161,8 +159,8 @@ class Node
      */
     public function get($name, $create = false)
     {
-        if (! $this->has($name)) {
-            if (! $create) {
+        if (!$this->has($name)) {
+            if (!$create) {
                 return null;
             }
             $this->mergeAttribute(new NodeAttribute($name));
@@ -237,9 +235,7 @@ class Node
     protected function getSafeAttributes()
     {
         $ignored = array_merge(
-            $this->tracker->getAdditions(),
-            $this->tracker->getDeletions(),
-            $this->tracker->getReplacements()
+                $this->tracker->getAdditions(), $this->tracker->getDeletions(), $this->tracker->getReplacements()
         );
         $attributes = array();
         foreach ($this->getAttributes() as $attribute) {
@@ -324,39 +320,42 @@ class Node
     public function rebaseDiff(Node $node)
     {
         $changes = array_merge(
-            $node->getDiffAdditions(),
-            $node->getDiffDeletions(),
-            $node->getDiffReplacements()
+                $node->getDiffAdditions(), $node->getDiffDeletions(), $node->getDiffReplacements()
         );
+        
         if (count($changes) > 0) {
             throw new RebaseException(
                 sprintf(
-                    '%s has some uncommitted changes - Cannot rebase %s on %s',
-                    $node->getDn(),
-                    $this->getDn(),
-                    $node->getDn()
+                    '%s has some uncommitted changes - Cannot rebase %s on %s', 
+                    $node->getDn(), $this->getDn(), $node->getDn()
                 )
             );
         }
+        
         $additions = $this->getDiffAdditions();
         $deletions = $this->getDiffDeletions();
         $replacements = $this->getDiffReplacements();
         $this->snapshot();
         $this->attributes = $node->getAttributes();
+        
         foreach ($additions as $attribute => $values) {
             $this->get($attribute, true)->add($values);
         }
+        
         foreach ($deletions as $attribute => $values) {
             if (count($values) == 0) {
                 $this->removeAttribute($attribute);
-            } else {
-                if ($this->has($attribute)) {
-                    $this->get($attribute)->remove($values);
-                }
+                continue;
+            }
+            
+            if ($this->has($attribute)) {
+                $this->get($attribute)->remove($values);
             }
         }
+        
         foreach ($replacements as $attribute => $values) {
             $this->get($attribute, true)->set($values);
         }
     }
+
 }
