@@ -67,19 +67,17 @@ class NodeAttribute implements \Iterator, \Countable, \ArrayAccess
      */
     public function getValue($default = null)
     {
-        $values = $this->getValues();
+        $first = reset($this->values);
 
-        if (count($values) > 1) {
+        if ($first === false) {
+            return $default;
+        }
+
+        if (count($this->values) > 1) {
             throw new \Exception('More than one value');
         }
 
-        $first = reset($values);
-
-        if ($first) {
-            return $first;
-        }
-
-        return $default;
+        return $first;
     }
 
     public function setBit($bit, $state)
