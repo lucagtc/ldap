@@ -107,6 +107,11 @@ class SearchResult implements \Iterator
         if (null !== $this->search) {
             $entry = $this->search->next();
             if (null !== $entry) {
+                if (is_callable($this->nodeClass)) {
+                    $class = $this->nodeClass($entry);
+                } else {
+                    $class = $this->nodeClass;
+                }
                 $class = $this->nodeClass;
 
                 $this->current = new $class();

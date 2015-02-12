@@ -233,6 +233,10 @@ class Manager
         }
 
         /* @var $node \Toyota\Component\Ldap\Core\Node */
+        if (is_callable($nodeClass)) {
+            $nodeClass = $this->nodeClass($entry);
+        }
+
         $node = new $nodeClass();
         $node->hydrateFromEntry($entry);
 
