@@ -11,9 +11,6 @@
 
 namespace Toyota\Component\Ldap\Core;
 
-use Toyota\Component\Ldap\API\SearchInterface;
-use Toyota\Component\Ldap\Core\Node;
-
 /**
  * Class to handle Ldap entries attributes
  *
@@ -42,7 +39,7 @@ class NodeAttribute implements \Iterator, \Countable, \ArrayAccess
     {
         $this->name = $name;
 
-        $this->tracker = (null === $tracker)?(new DiffTracker()):$tracker;
+        $this->tracker = (null === $tracker) ? (new DiffTracker()) : $tracker;
     }
 
     /**
@@ -66,6 +63,26 @@ class NodeAttribute implements \Iterator, \Countable, \ArrayAccess
     }
 
     /**
+     * Get first value
+     */
+    public function getValue($default = null)
+    {
+        $values = $this->getValues();
+
+        if (count($values) > 1) {
+            throw new \Exception('More than one value');
+        }
+
+        $first = reset($values);
+
+        if ($first) {
+            return $first;
+        }
+
+        return $default;
+    }
+
+    /**
      * Add a value as an instance of this attribute
      *
      * @param mixed $value Value to add to the attribute instances
@@ -84,6 +101,7 @@ class NodeAttribute implements \Iterator, \Countable, \ArrayAccess
             return false;
         }
         $this->offsetSet(null, $value);
+
         return true;
     }
 
@@ -96,12 +114,13 @@ class NodeAttribute implements \Iterator, \Countable, \ArrayAccess
      */
     public function set($values)
     {
-        if (! is_array($values)) {
+        if (!is_array($values)) {
             $values = array($values);
         }
         $this->values = $values;
         $this->snapshot();
         $this->tracker->markOverridden();
+
         return true;
     }
 
@@ -130,6 +149,7 @@ class NodeAttribute implements \Iterator, \Countable, \ArrayAccess
             $flag = call_user_func(array($this, $method), $value);
             $result = $result || $flag;
         }
+
         return $result;
     }
 
@@ -150,6 +170,7 @@ class NodeAttribute implements \Iterator, \Countable, \ArrayAccess
             return false;
         }
         $this->offsetUnset($key);
+
         return true;
     }
 
@@ -173,19 +194,21 @@ class NodeAttribute implements \Iterator, \Countable, \ArrayAccess
         if ($this->valid()) {
             return key($this->values);
         }
+
         return null;
     }
 
     /**
      * Iterator current
      *
-     * @return Node or false
+     * @return \Toyota\Component\Ldap\Core\Node or false
      */
     public function current()
     {
         if ($this->valid()) {
             return current($this->values);
         }
+
         return false;
     }
 
@@ -227,7 +250,8 @@ class NodeAttribute implements \Iterator, \Countable, \ArrayAccess
      *
      * @return void
      */
-    public function offsetSet($offset, $value) {
+    public function offsetSet($offset, $value)
+    {
         if (is_null($offset)) {
             $this->values[] = $value;
         } else {
@@ -243,7 +267,8 @@ class NodeAttribute implements \Iterator, \Countable, \ArrayAccess
      *
      * @return boolean
      */
-    public function offsetExists($offset) {
+    public function offsetExists($offset)
+    {
         return isset($this->values[$offset]);
     }
 
@@ -254,8 +279,9 @@ class NodeAttribute implements \Iterator, \Countable, \ArrayAccess
      *
      * @return void
      */
-    public function offsetUnset($offset) {
-        if (! $this->offsetExists($offset)) {
+    public function offsetUnset($offset)
+    {
+        if (!$this->offsetExists($offset)) {
             return;
         }
         $value = $this->offsetGet($offset);
@@ -270,7 +296,8 @@ class NodeAttribute implements \Iterator, \Countable, \ArrayAccess
      *
      * @return boolean
      */
-    public function offsetGet($offset) {
+    public function offsetGet($offset)
+    {
         return ($this->offsetExists($offset)) ? $this->values[$offset] : null;
     }
 

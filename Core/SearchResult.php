@@ -12,7 +12,6 @@
 namespace Toyota\Component\Ldap\Core;
 
 use Toyota\Component\Ldap\API\SearchInterface;
-use Toyota\Component\Ldap\Core\Node;
 
 /**
  * Class to handle Ldap queries
@@ -22,9 +21,22 @@ use Toyota\Component\Ldap\Core\Node;
 class SearchResult implements \Iterator
 {
 
+    /**
+     * @var SearchInterface
+     */
     protected $search = null;
 
+    /**
+     * @var \Toyota\Component\Ldap\Core\Node
+     */
     protected $current = null;
+
+    private $nodeClass;
+
+    public function __construct($nodeClass = '\Toyota\Component\Ldap\Core\Node')
+    {
+        $this->nodeClass = $nodeClass;
+    }
 
     /**
      * Setter for search
@@ -66,7 +78,8 @@ class SearchResult implements \Iterator
         if ($this->valid()) {
             return $this->current->getDn();
         }
-        return;
+
+        return null;
     }
 
     /**
@@ -79,6 +92,7 @@ class SearchResult implements \Iterator
         if ($this->valid()) {
             return $this->current;
         }
+
         return false;
     }
 
@@ -93,7 +107,9 @@ class SearchResult implements \Iterator
         if (null !== $this->search) {
             $entry = $this->search->next();
             if (null !== $entry) {
-                $this->current = new Node();
+                $class = $this->nodeClass;
+
+                $this->current = new $class();
                 $this->current->hydrateFromEntry($entry);
             }
         }
