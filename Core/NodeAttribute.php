@@ -82,6 +82,29 @@ class NodeAttribute implements \Iterator, \Countable, \ArrayAccess
         return $default;
     }
 
+    public function setBit($bit, $state)
+    {
+        $val = $this->getValue(0);
+        if ($state == true) {
+            $val = $val | $bit;
+        } else {
+            $val = $val & ~$bit;
+        }
+
+        return $this->set($val);
+    }
+
+    public function getBit($bit)
+    {
+        $value = $this->getValue();
+        if ($value === null) {
+            return null;
+        }
+
+        return ($value & $bit) > 0;
+    }
+
+
     /**
      * Add a value as an instance of this attribute
      *
