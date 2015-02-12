@@ -37,7 +37,7 @@ class NodeAttribute implements \Iterator, \Countable, \ArrayAccess
      */
     public function __construct($name, DiffTracker $tracker = null)
     {
-        $this->name = $name;
+        $this->name = strtolower($name);
 
         $this->tracker = (null === $tracker) ? (new DiffTracker()) : $tracker;
     }

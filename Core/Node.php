@@ -74,7 +74,7 @@ class Node
     /**
      * Setter for distinguished name
      *
-     * @param string $dn     Distinguished name
+     * @param string  $dn    Distinguished name
      * @param boolean $force Whether to force dn change (Default: false)
      *
      * @return void
@@ -124,6 +124,7 @@ class Node
         if (!$this->has($attribute->getName())) {
             $this->attributes[$attribute->getName()] = $attribute;
             $this->tracker->logAddition($attribute->getName());
+
             return;
         }
         $backup = $attribute;
@@ -141,11 +142,14 @@ class Node
      */
     public function removeAttribute($name)
     {
+        $name = strtolower($name);
+
         if (!$this->has($name)) {
             return false;
         }
         unset($this->attributes[$name]);
         $this->tracker->logDeletion($name);
+
         return true;
     }
 
@@ -159,12 +163,15 @@ class Node
      */
     public function get($name, $create = false)
     {
+        $name = strtolower($name);
+
         if (!$this->has($name)) {
             if (!$create) {
                 return null;
             }
             $this->mergeAttribute(new NodeAttribute($name));
         }
+
         return $this->attributes[$name];
     }
 
@@ -177,7 +184,7 @@ class Node
      */
     public function has($name)
     {
-        return isset($this->attributes[$name]);
+        return isset($this->attributes[strtolower($name)]);
     }
 
     /**
@@ -191,6 +198,7 @@ class Node
         foreach ($this->tracker->getAdditions() as $name) {
             $data[$name] = $this->get($name)->getValues();
         }
+
         return $data;
     }
 
@@ -205,6 +213,7 @@ class Node
         foreach ($this->tracker->getDeletions() as $name) {
             $data[$name] = array();
         }
+
         return $data;
     }
 
@@ -224,6 +233,7 @@ class Node
                 $data[$attribute->getName()] = $buffer;
             }
         }
+
         return $data;
     }
 
@@ -235,7 +245,7 @@ class Node
     protected function getSafeAttributes()
     {
         $ignored = array_merge(
-                $this->tracker->getAdditions(), $this->tracker->getDeletions(), $this->tracker->getReplacements()
+            $this->tracker->getAdditions(), $this->tracker->getDeletions(), $this->tracker->getReplacements()
         );
         $attributes = array();
         foreach ($this->getAttributes() as $attribute) {
@@ -244,6 +254,7 @@ class Node
             }
             $attributes[$attribute->getName()] = $attribute;
         }
+
         return $attributes;
     }
 
@@ -263,6 +274,7 @@ class Node
         foreach ($this->tracker->getReplacements() as $name) {
             $data[$name] = $this->get($name)->getValues();
         }
+
         return $data;
     }
 
@@ -305,6 +317,7 @@ class Node
         foreach ($this->attributes as $name => $attribute) {
             $data[$name] = $attribute->getValues();
         }
+
         return $data;
     }
 
@@ -320,39 +333,39 @@ class Node
     public function rebaseDiff(Node $node)
     {
         $changes = array_merge(
-                $node->getDiffAdditions(), $node->getDiffDeletions(), $node->getDiffReplacements()
+            $node->getDiffAdditions(), $node->getDiffDeletions(), $node->getDiffReplacements()
         );
-        
+
         if (count($changes) > 0) {
             throw new RebaseException(
                 sprintf(
-                    '%s has some uncommitted changes - Cannot rebase %s on %s', 
+                    '%s has some uncommitted changes - Cannot rebase %s on %s',
                     $node->getDn(), $this->getDn(), $node->getDn()
                 )
             );
         }
-        
+
         $additions = $this->getDiffAdditions();
         $deletions = $this->getDiffDeletions();
         $replacements = $this->getDiffReplacements();
         $this->snapshot();
         $this->attributes = $node->getAttributes();
-        
+
         foreach ($additions as $attribute => $values) {
             $this->get($attribute, true)->add($values);
         }
-        
+
         foreach ($deletions as $attribute => $values) {
             if (count($values) == 0) {
                 $this->removeAttribute($attribute);
                 continue;
             }
-            
+
             if ($this->has($attribute)) {
                 $this->get($attribute)->remove($values);
             }
         }
-        
+
         foreach ($replacements as $attribute => $values) {
             $this->get($attribute, true)->set($values);
         }
