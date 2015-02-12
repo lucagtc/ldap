@@ -1,6 +1,6 @@
 {
-    "name": "81square/tiesa-ldap",
-    "description": "LDAP made easy & practical to use in PHP (fork of tiesa/ldap)",
+    "name": "lucagtc/ldap",
+    "description": "LDAP made easy & practical to use in PHP (fork of tiesa/ldap -> 81square/tiesa-ldap)",
     "keywords": ["LDAP"],
     "homepage": "https://github.com/81square/ldap",
     "license": "MIT",
