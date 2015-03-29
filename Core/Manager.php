@@ -221,9 +221,7 @@ class Manager
         $filter = (null === $filter) ? '(objectclass=*)' : $filter;
 
         try {
-            $search = $this->connection->search(
-                SearchInterface::SCOPE_BASE, $dn, $filter, $attributes
-            );
+            $search = $this->connection->search(SearchInterface::SCOPE_BASE, $dn, $filter, $attributes);
         } catch (NoResultException $e) {
             throw new NodeNotFoundException(sprintf('Node %s not found', $dn));
         }
